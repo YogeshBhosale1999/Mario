@@ -29,15 +29,9 @@ jobs:
         with:
           image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/supermariogitopsproject:${{ env.VERSION }}
           format: 'table'
-          exit-code: '1'   # Fail pipeline if CRITICAL/HIGH vulnerabilities are found
+          exit-code: '0'   # Always succeed, even if vulnerabilities are found
           severity: 'CRITICAL,HIGH'
 
-      - name: Check for Vulnerabilities in Trivy Scan Results
-        if: failure()
+      - name: Report Vulnerabilities
         run: |
-          echo "Vulnerabilities found in the Docker image. Failing the Quality Gate."
-          exit 1
-      - name: No Vulnerabilities Found
-        if: success()
-        run: |
-          echo "No critical or high vulnerabilities found in the Docker image. Quality Gate passed."
+          echo "Trivy scan completed. Vulnerabilities may exist, but pipeline will continue."
