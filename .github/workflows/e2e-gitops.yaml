@@ -83,7 +83,7 @@ jobs:
       - name: Update Deployment YAML
         run: |
           git pull
-          sed -i "s|image: raghuthesecurityexpert/supermariogitopsproject:.*$|image: raghuthesecurityexpert/supermariogitopsproject:${{ env.VERSION }}|" deployment.yaml
+          sed -i "s|image: livinace28/supermariogitopsproject:.*$|image: livinace28/supermariogitopsproject:${{ env.VERSION }}|" deployment.yaml
           echo ${{ env.VERSION }} > version.txt
           CURRENT_VERSION=$(cat version.txt)
           git add deployment.yaml version.txt
