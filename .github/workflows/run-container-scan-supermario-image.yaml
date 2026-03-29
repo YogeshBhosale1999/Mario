@@ -20,21 +20,26 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        
-      - name: Get Docker Image from Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          docker pull docker.io/raghuthesecurityexpert/supermariogitopsproject:${{ env.VERSION }}
-          docker save -o supermariolatestdockerimage.tar docker.io/raghuthesecurityexpert/supermariogitopsproject:${{ env.VERSION }}
-     
-      - name: Run Trivy vulnerability scanner in tarball mode
+          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Pull Docker Image from Docker Hub
+        run: |
+          docker pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/supermariogitopsproject:${{ env.VERSION }}
+
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          input: /github/workspace/supermariolatestdockerimage.tar
+          image-ref: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/supermariogitopsproject:${{ env.VERSION }}
+          format: 'table'
           exit-code: '1'   # Fail pipeline if CRITICAL/HIGH vulnerabilities are found
           severity: 'CRITICAL,HIGH'
+
       - name: Check for Vulnerabilities in Trivy Scan Results
-        if: failure()  # Only run this step if the previous step failed (i.e., vulnerabilities were found)
+        if: failure()  # Only run if Trivy step failed
         run: |
           echo "Vulnerabilities found in the Docker image. Failing the Quality Gate."
-          exit 1  # Exit with a non-zero code to fail the job
+          exit 1
